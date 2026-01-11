@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hit-counter-api
+  labels:
+    app: hit-counter-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hit-counter-api
+  template:
+    metadata:
+      labels:
+        app: hit-counter-api
+    spec:
+      containers:
+      - name: api
+        image: hit-counter-api:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5000
+          name: http
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
