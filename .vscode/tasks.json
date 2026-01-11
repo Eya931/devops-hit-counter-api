@@ -1,0 +1,22 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "pip install requirements",
+			"command": "pip",
+			"args": [
+				"install",
+				"-r",
+				"requirements.txt"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "silent"
+			}
+		}
+	]
+}
