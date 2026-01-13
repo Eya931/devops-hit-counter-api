@@ -28,7 +28,7 @@ jobs:
       - name: Run unit tests
         run: pytest tests/ -v --tb=short
       
-      - name: SAST: Run Bandit security scan
+      - name: SAST - Run Bandit security scan
         run: |
           echo "🔍 Running SAST Security Scan (Bandit)..."
           bandit -r app/ -f json -o bandit-report.json || true
@@ -73,7 +73,7 @@ jobs:
           docker run -d -p 5000:5000 --name dast-api hit-counter-api:latest
           sleep 3
       
-      - name: DAST: Run basic security checks
+      - name: DAST - Run basic security checks
         run: |
           echo "🔐 Running DAST Security Checks..."
           
