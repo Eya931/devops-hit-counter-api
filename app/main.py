@@ -55,7 +55,7 @@ def after_request(response):
 def dashboard():
     """Serve the dashboard"""
     dashboard_path = os.path.join(os.path.dirname(__file__), 'static', 'dashboard.html')
-    with open(dashboard_path, 'r') as f:
+    with open(dashboard_path, 'r', encoding='utf-8') as f:
         return f.read()
 
 @app.route('/static/<path:filename>', methods=['GET'])
