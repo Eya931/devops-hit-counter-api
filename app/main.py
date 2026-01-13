@@ -1,8 +1,9 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template_string, send_from_directory
 from prometheus_client import Counter, Histogram, generate_latest, REGISTRY
 from pythonjsonlogger import jsonlogger
 import logging
 import json
+import os
 from datetime import datetime
 import time
 
@@ -50,6 +51,20 @@ def after_request(response):
     return response
 
 # ===== ROUTES API =====
+
+@app.route('/', methods=['GET'])
+def dashboard():
+    """Serve the dashboard"""
+    dashboard_path = os.path.join(os.path.dirname(__file__), 'static', 'dashboard.html')
+    with open(dashboard_path, 'r', encoding='utf-8') as f:
+        return f.read()
+
+@app.route('/static/<path:filename>', methods=['GET'])
+def static_files(filename):
+    """Serve static files (CSS, JS)"""
+    static_dir = os.path.join(os.path.dirname(__file__), 'static')
+    return send_from_directory(static_dir, filename)
+
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({"status": "healthy"}), 200
