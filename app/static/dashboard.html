@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hit Counter API Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🚀 Hit Counter API Dashboard</h1>
+                <p class="status" id="status">● System Status: <span id="status-text">Checking...</span></p>
+            </div>
+        </header>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📄</div>
+                <h3>Total Pages</h3>
+                <p class="stat-value" id="total-pages">0</p>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👁️</div>
+                <h3>Total Hits</h3>
+                <p class="stat-value" id="total-hits">0</p>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📈</div>
+                <h3>Avg Hits/Page</h3>
+                <p class="stat-value" id="avg-hits">0</p>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚡</div>
+                <h3>API Latency</h3>
+                <p class="stat-value" id="latency">0ms</p>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+            <!-- Hits Chart -->
+            <div class="chart-container">
+                <h2>📊 Hits per Page</h2>
+                <canvas id="hitsChart"></canvas>
+            </div>
+
+            <!-- Requests Chart -->
+            <div class="chart-container">
+                <h2>📈 Request Rate (Last 10 Calls)</h2>
+                <canvas id="requestsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Pages List -->
+        <div class="pages-section">
+            <h2>📋 Pages List</h2>
+            <div class="pages-container" id="pages-container">
+                <p class="no-data">No pages yet. Create one with the form below!</p>
+            </div>
+        </div>
+
+        <!-- Create Page Form -->
+        <div class="form-section">
+            <h2>➕ Create New Page</h2>
+            <form id="create-form" class="form-group">
+                <input 
+                    type="text" 
+                    id="page-name" 
+                    placeholder="Enter page name (e.g., Homepage, About)"
+                    required
+                >
+                <button type="submit" class="btn-primary">Create Page</button>
+            </form>
+            <p id="form-message" class="form-message"></p>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions">
+            <button class="btn-secondary" onclick="refreshDashboard()">🔄 Refresh Now</button>
+            <button class="btn-secondary" onclick="clearAllPages()">🗑️ Clear All Pages</button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Last updated: <span id="last-updated">Never</span></p>
+            <p>API Endpoint: <code>/api/pages</code> | Metrics: <code>/metrics</code> | Health: <code>/health</code></p>
+        </footer>
+    </div>
+
+    <script>
+        let hitsChart, requestsChart;
+        let requestTimes = [];
+        const MAX_REQUESTS = 10;
+
+        // Initialize charts
+        function initCharts() {
+            const hitsCtx = document.getElementById('hitsChart').getContext('2d');
+            const requestsCtx = document.getElementById('requestsChart').getContext('2d');
+
+            hitsChart = new Chart(hitsCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Hits',
+                        data: [],
+                        backgroundColor: [
+                            '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A',
+                            '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'
+                        ],
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#666' }
+                        },
+                        x: {
+                            ticks: { color: '#666' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            requestsChart = new Chart(requestsCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Response Time (ms)',
+                        data: [],
+                        borderColor: '#45B7D1',
+                        backgroundColor: 'rgba(69, 183, 209, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#45B7D1',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#666' }
+                        },
+                        x: {
+                            ticks: { color: '#666' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: '#666' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Refresh dashboard
+        async function refreshDashboard() {
+            const startTime = performance.now();
+            
+            try {
+                // Check API health
+                const healthRes = await fetch('/health');
+                const isHealthy = healthRes.ok;
+                document.getElementById('status-text').textContent = isHealthy ? 'Healthy ✅' : 'Down ❌';
+                document.getElementById('status-text').style.color = isHealthy ? '#4CAF50' : '#FF6B6B';
+
+                // Get pages data
+                const pagesRes = await fetch('/api/pages');
+                const pages = await pagesRes.json();
+
+                const endTime = performance.now();
+                const latency = Math.round(endTime - startTime);
+                requestTimes.push(latency);
+                if (requestTimes.length > MAX_REQUESTS) {
+                    requestTimes.shift();
+                }
+
+                // Update stats
+                const totalHits = pages.reduce((sum, p) => sum + p.hits, 0);
+                const avgHits = pages.length > 0 ? (totalHits / pages.length).toFixed(1) : 0;
+
+                document.getElementById('total-pages').textContent = pages.length;
+                document.getElementById('total-hits').textContent = totalHits;
+                document.getElementById('avg-hits').textContent = avgHits;
+                document.getElementById('latency').textContent = latency + 'ms';
+
+                // Update hits chart
+                hitsChart.data.labels = pages.map(p => p.name);
+                hitsChart.data.datasets[0].data = pages.map(p => p.hits);
+                hitsChart.update();
+
+                // Update requests chart
+                requestsChart.data.labels = requestTimes.map((_, i) => `#${i + 1}`);
+                requestsChart.data.datasets[0].data = requestTimes;
+                requestsChart.update();
+
+                // Update pages list
+                updatePagesList(pages);
+
+                // Update last updated time
+                const now = new Date();
+                document.getElementById('last-updated').textContent = 
+                    now.toLocaleTimeString();
+
+            } catch (error) {
+                console.error('Error refreshing dashboard:', error);
+                document.getElementById('status-text').textContent = 'Error ❌';
+                document.getElementById('status-text').style.color = '#FF6B6B';
+            }
+        }
+
+        // Update pages list
+        function updatePagesList(pages) {
+            const container = document.getElementById('pages-container');
+            
+            if (pages.length === 0) {
+                container.innerHTML = '<p class="no-data">No pages yet. Create one with the form below!</p>';
+                return;
+            }
+
+            container.innerHTML = pages.map(page => `
+                <div class="page-card">
+                    <div class="page-info">
+                        <h3>${page.name}</h3>
+                        <p class="page-id">ID: ${page.id}</p>
+                        <p class="page-created">Created: ${new Date(page.created_at).toLocaleDateString()}</p>
+                    </div>
+                    <div class="page-hits">
+                        <div class="hits-value">${page.hits}</div>
+                        <div class="hits-label">Hits</div>
+                    </div>
+                    <div class="page-actions">
+                        <button class="btn-hit" onclick="incrementHit(${page.id})">👁️ Add Hit</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Create new page
+        document.getElementById('create-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('page-name').value;
+            const messageEl = document.getElementById('form-message');
+
+            try {
+                const res = await fetch('/api/pages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+
+                if (res.ok) {
+                    messageEl.textContent = `✅ Page "${name}" created successfully!`;
+                    messageEl.style.color = '#4CAF50';
+                    document.getElementById('page-name').value = '';
+                    setTimeout(() => {
+                        messageEl.textContent = '';
+                        refreshDashboard();
+                    }, 2000);
+                } else {
+                    messageEl.textContent = '❌ Error creating page';
+                    messageEl.style.color = '#FF6B6B';
+                }
+            } catch (error) {
+                messageEl.textContent = '❌ Error: ' + error.message;
+                messageEl.style.color = '#FF6B6B';
+            }
+        });
+
+        // Increment hit
+        async function incrementHit(pageId) {
+            try {
+                await fetch(`/api/pages/${pageId}/hit`, { method: 'POST' });
+                refreshDashboard();
+            } catch (error) {
+                console.error('Error incrementing hit:', error);
+            }
+        }
+
+        // Clear all pages
+        async function clearAllPages() {
+            if (!confirm('Are you sure you want to clear all pages? This cannot be undone.')) {
+                return;
+            }
+            location.reload();
+        }
+
+        // Auto-refresh every 5 seconds
+        setInterval(refreshDashboard, 5000);
+
+        // Initial load
+        initCharts();
+        refreshDashboard();
+    </script>
+</body>
+</html>
