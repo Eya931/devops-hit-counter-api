@@ -23,7 +23,23 @@ request_duration = Histogram('api_request_duration_seconds', 'API request durati
 hit_counter = Counter('page_hits_total', 'Total hits per page', ['page_name'])
 
 # ===== DONNÉES EN MÉMOIRE =====
-pages_data = {}
+pages_data = {
+    "Home page": 4850,
+    "Login / Sign up": 1320,
+    "Shop / Products listing": 2940,
+    "Product details page": 6780,
+    "Search results page": 1150,
+    "Cart page": 620,
+    "Checkout page": 310,
+    "Payment page": 245,
+    "Order confirmation page": 230,
+    "User profile / Account": 410,
+    "Wishlist / Favorites": 180,
+    "About us": 260,
+    "Contact us": 140,
+    "FAQ / Help": 195,
+    "Admin dashboard": 85
+}
 
 # ===== MIDDLEWARE POUR TRACER LES REQUÊTES =====
 @app.before_request
