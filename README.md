@@ -15,33 +15,22 @@ A simple REST API service to count page visits. Built with Flask, containerized 
 
 ## Architecture
 
-┌──────────────┐
-│    Client    │
-│ (Browser /   │
-│  HTTP User)  │
-└───────┬──────┘
-        │ HTTP Requests
-        ▼
-┌──────────────────────────┐
-│        Flask API         │
-│--------------------------│
-│  • Pages CRUD            │
-│  • Hit Counter           │
-│  • Prometheus Metrics    │
-└───────┬───────────┬──────┘
-        │           │
-        │           │ /metrics
-        │           ▼
-        │     ┌──────────────┐
-        │     │  Prometheus  │
-        │     │   Server     │
-        │     └──────────────┘
-        │
-        ▼
-┌──────────────────────────┐
-│   In-Memory Data Store   │
-│ (Python dict / cache)   │
-└──────────────────────────┘
+The application exposes a Flask-based REST API that handles page CRUD
+operations and a hit counter. Data is stored in-memory for simplicity.
+Metrics are exposed via a `/metrics` endpoint and scraped by Prometheus.
+
+flowchart LR
+    Client[Client<br/>(Browser / HTTP User)]
+
+    API[Flask API<br/>• Pages CRUD<br/>• Hit Counter]
+
+    Memory[(In-Memory Data Store<br/>Python dict / cache)]
+
+    Prometheus[Prometheus Server]
+
+    Client -->|HTTP Requests| API
+    API --> Memory
+    API -->|/metrics| Prometheus
 
 
 ## Requirements
