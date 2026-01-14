@@ -24,21 +24,21 @@ hit_counter = Counter('page_hits_total', 'Total hits per page', ['page_name'])
 
 # ===== DONNÉES EN MÉMOIRE =====
 pages_data = {
-    "Home page": 4850,
-    "Login / Sign up": 1320,
-    "Shop / Products listing": 2940,
-    "Product details page": 6780,
-    "Search results page": 1150,
-    "Cart page": 620,
-    "Checkout page": 310,
-    "Payment page": 245,
-    "Order confirmation page": 230,
-    "User profile / Account": 410,
-    "Wishlist / Favorites": 180,
-    "About us": 260,
-    "Contact us": 140,
-    "FAQ / Help": 195,
-    "Admin dashboard": 85
+    1: {"id": 1, "name": "Home page", "hits": 4850, "created_at": datetime.now().isoformat()},
+    2: {"id": 2, "name": "Login / Sign up", "hits": 1320, "created_at": datetime.now().isoformat()},
+    3: {"id": 3, "name": "Shop / Products listing", "hits": 2940, "created_at": datetime.now().isoformat()},
+    4: {"id": 4, "name": "Product details page", "hits": 6780, "created_at": datetime.now().isoformat()},
+    5: {"id": 5, "name": "Search results page", "hits": 1150, "created_at": datetime.now().isoformat()},
+    6: {"id": 6, "name": "Cart page", "hits": 620, "created_at": datetime.now().isoformat()},
+    7: {"id": 7, "name": "Checkout page", "hits": 310, "created_at": datetime.now().isoformat()},
+    8: {"id": 8, "name": "Payment page", "hits": 245, "created_at": datetime.now().isoformat()},
+    9: {"id": 9, "name": "Order confirmation page", "hits": 230, "created_at": datetime.now().isoformat()},
+    10: {"id": 10, "name": "User profile / Account", "hits": 410, "created_at": datetime.now().isoformat()},
+    11: {"id": 11, "name": "Wishlist / Favorites", "hits": 180, "created_at": datetime.now().isoformat()},
+    12: {"id": 12, "name": "About us", "hits": 260, "created_at": datetime.now().isoformat()},
+    13: {"id": 13, "name": "Contact us", "hits": 140, "created_at": datetime.now().isoformat()},
+    14: {"id": 14, "name": "FAQ / Help", "hits": 195, "created_at": datetime.now().isoformat()},
+    15: {"id": 15, "name": "Admin dashboard", "hits": 85, "created_at": datetime.now().isoformat()}
 }
 
 # ===== MIDDLEWARE POUR TRACER LES REQUÊTES =====
