@@ -1,341 +1,181 @@
-# Hit Counter API
+# 📊 Hit Counter API - DevOps Project
 
-A simple REST API service to count page visits. Built with Flask, containerized with Docker, and deployed on Kubernetes.
+A complete DevOps project: REST API + Docker + Kubernetes + CI/CD + Security scanning + Observability.
 
-## Features
-
-- ✅ REST API for managing pages and counting hits
-- ✅ Prometheus metrics exposure
-- ✅ Structured JSON logging
-- ✅ Basic request tracing
-- ✅ Docker containerization
-- ✅ Kubernetes deployment ready
-- ✅ CI/CD pipeline with GitHub Actions
-- ✅ Security scanning (SAST + DAST)
-
-## Architecture
-
-The application exposes a Flask-based REST API that handles page CRUD
-operations and a hit counter. Data is stored in-memory for simplicity.
-Metrics are exposed via a `/metrics` endpoint and scraped by Prometheus.
-
-
-```text
-┌──────────────┐
-│    Client    │
-│ (Browser /   │
-│  HTTP User)  │
-└───────┬──────┘
-        │ HTTP Requests
-        ▼
-┌──────────────────────────┐
-│        Flask API         │
-│--------------------------│
-│  • Pages CRUD            │
-│  • Hit Counter           │
-│  • Prometheus Metrics    │
-└───────┬───────────┬──────┘
-        │           │
-        │           │ /metrics
-        │           ▼
-        │     ┌──────────────┐
-        │     │  Prometheus  │
-        │     │   Server     │
-        │     └──────────────┘
-        │
-        ▼
-┌──────────────────────────┐
-│   In-Memory Data Store   │
-│ (Python dict / cache)    │
-└──────────────────────────┘
-```
-
-
-## Requirements
-
-- Python 3.11+
-- Docker (optional)
-- Kubernetes/Minikube (for production)
-- pip
-
-## Installation & Setup
+## 🚀 Quick Start
 
 ### Local Development
 
-1. Clone the repository:
 ```bash
-git clone https://github.com/YOUR_USERNAME/devops-hit-counter-api.git
-cd devops-hit-counter-api
-```
-
-2. Create virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. Install dependencies:
-```bash
+# Setup
+python -m venv .venv
+.venv\Scripts\activate
 pip install -r requirements.txt
-pip install pytest
-```
 
-4. Run the API:
-```bash
+# Run
 python -m app.main
+
+# Test
+Invoke-WebRequest -Uri http://localhost:5000/health
+Invoke-WebRequest -Uri http://localhost:5000/api/pages
+Invoke-WebRequest -Uri -X POST http://localhost:5000/api/pages/home/hit
+Invoke-WebRequest -Uri http://localhost:5000/metrics
 ```
 
-5. Test:
-```bash
-pytest tests/ -v
-```
+### Docker
 
-API will be available at `http://localhost:5000`
-
-### Using Docker
-
-1. Build the image:
 ```bash
 docker build -t hit-counter-api:latest .
+docker run -d -p 5000:5000 --name api hit-counter-api:latest
+Invoke-WebRequest -Uri http://localhost:5000/health
+docker stop api
 ```
 
-2. Run the container:
-```bash
-docker run -p 5000:5000 hit-counter-api:latest
-```
+### Kubernetes
 
-3. Using docker-compose:
 ```bash
-docker-compose up -d
-docker-compose logs -f
-```
+minikube start --driver=docker
+minikube docker-env | Invoke-Expression
 
-### Kubernetes Deployment
-
-1. Start Minikube:
-```bash
-minikube start
-eval $(minikube docker-env)
-```
-
-2. Build and deploy:
-```bash
 docker build -t hit-counter-api:latest .
 kubectl apply -f kubernetes/
+kubectl get pods
+kubectl port-forward svc/hit-counter-api 5000:80
+# http://localhost:5000
 ```
 
-3. Wait for pods to be ready:
+## 📡 API Endpoints
+
 ```bash
-kubectl wait --for=condition=Ready pod -l app=hit-counter-api --timeout=300s
+GET  /health                     # Health check
+GET  /api/pages                  # List pages
+POST /api/pages/<page>/hit       # Add hit
+GET  /metrics                    # Prometheus metrics
+GET  /                           # Dashboard
 ```
 
-4. Get the service URL:
-```bash
-minikube service hit-counter-api --url
+## 🔧 Tech Stack
+
+- **Backend**: Flask (< 150 lines)
+- **Container**: Docker
+- **Orchestration**: Kubernetes
+- **CI/CD**: GitHub Actions
+- **Monitoring**: Prometheus metrics + JSON logs
+- **Security**: Bandit (SAST) + DAST checks
+- **Dashboard**: Chart.js visualization
+
+## ✨ Features
+
+✅ REST API with hit counter
+✅ Docker containerization with health checks
+✅ Kubernetes deployment (2 replicas)
+✅ GitHub Actions CI/CD pipeline
+✅ Prometheus metrics exposure
+✅ Structured JSON logging
+✅ Request tracing with unique IDs
+✅ Interactive web dashboard
+✅ SAST security scanning (Bandit)
+✅ DAST runtime security checks
+
+## 📊 Observability
+
+**Metrics** - `http://localhost:5000/metrics`
+- `api_requests_total` - Total requests
+- `api_request_duration_seconds` - Request latency
+- `page_hits_total` - Hits per page
+
+**Logs** - Structured JSON format
+```json
+{"message": "Incoming request", "method": "GET", "path": "/api/pages", "request_id": "req-XXX"}
 ```
 
-## API Endpoints
+**Tracing** - Each request has unique `request_id` for correlation
 
-### Health Check
-```bash
-GET /health
+## 🔐 Security
 
-Response (200):
-{
-  "status": "healthy"
-}
+- **SAST**: Bandit scans code for vulnerabilities
+- **DAST**: Runtime security checks (input validation, error handling, 404 responses)
+- Results available in GitHub Actions Artifacts
+
+## 📁 Project Structure
+
+```text
+.
+├── app/main.py              # Flask API
+├── app/static/dashboard.html # Web dashboard
+├── tests/test_app.py        # Unit tests
+├── kubernetes/              # K8s manifests
+├── .github/workflows/ci.yml # CI/CD pipeline
+├── Dockerfile               # Docker image
+├── requirements.txt         # Dependencies
+└── README.md               # This file
 ```
 
-### List All Pages
-```bash
-GET /api/pages
+## 🔄 CI/CD Pipeline
 
-Response (200):
-[
-  {
-    "id": 1,
-    "name": "Homepage",
-    "hits": 42,
-    "created_at": "2024-01-10T15:30:00.123456"
-  }
-]
-```
+Push to GitHub → Automatic:
+1. ✅ Run tests
+2. ✅ SAST scan (Bandit)
+3. ✅ Build Docker image
+4. ✅ DAST checks
+5. ✅ Code quality analysis
 
-### Create a Page
-```bash
-POST /api/pages
-Content-Type: application/json
+View results: GitHub → Actions → Latest workflow
 
-{
-  "name": "About Page"
-}
+## 📊 Dashboard
 
-Response (201):
-{
-  "id": 2,
-  "name": "About Page",
-  "hits": 0,
-  "created_at": "2024-01-10T15:31:00.123456"
-}
-```
+Open `http://localhost:5000`
 
-### Get Page Hit Count
-```bash
-GET /api/pages/{id}/hits
+Features:
+- Real-time statistics
+- Chart.js visualization
+- Add hits button
+- Auto-refresh every 5s
 
-Response (200):
-{
-  "hits": 42
-}
-```
+## 🧪 Testing
 
-### Increment Hit Count
-```bash
-POST /api/pages/{id}/hit
-
-Response (200):
-{
-  "id": 1,
-  "name": "Homepage",
-  "hits": 43,
-  "created_at": "2024-01-10T15:30:00.123456"
-}
-```
-
-### Prometheus Metrics
-```bash
-GET /metrics
-
-Response (200):
-# HELP api_requests_total Total API requests
-# TYPE api_requests_total counter
-api_requests_total{endpoint="pages",method="POST"} 5.0
-...
-```
-
-## Testing
-
-### Unit Tests
 ```bash
 pytest tests/ -v
 ```
 
-### Manual API Tests
+## 🐛 Troubleshooting
+
+**Docker connection fails:**
 ```bash
-# Health check
-curl http://localhost:5000/health
-
-# Create page
-curl -X POST http://localhost:5000/api/pages \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Homepage"}'
-
-# Get pages
-curl http://localhost:5000/api/pages
-
-# Increment hit
-curl -X POST http://localhost:5000/api/pages/1/hit
-
-# Get metrics
-curl http://localhost:5000/metrics
+minikube docker-env | Invoke-Expression
 ```
 
-## Observability
-
-### Metrics
-- Prometheus-compatible metrics available at `/metrics`
-- Tracks: request count, request duration, page hits
-
-### Logging
-- Structured JSON logging for all requests
-- Includes: method, path, status, duration, request_id
-- Sample log:
-```json
-{
-  "message": "Incoming request",
-  "method": "POST",
-  "path": "/api/pages/1/hit",
-  "request_id": "req-1704878400.123"
-}
+**Pods not starting:**
+```bash
+kubectl logs -f deployment/hit-counter-api
+kubectl describe pod hit-counter-api-xxxxx
 ```
 
-### Tracing
-- Each request includes unique `X-Request-ID` header
-- Propagated through request lifecycle
-- Visible in logs for correlation
-
-## Security
-
-### SAST (Static Application Security Testing)
-- Bandit runs on every commit via GitHub Actions
-- Scans Python code for security vulnerabilities
-- Report available in Actions artifacts
-
-### DAST (Dynamic Application Security Testing)
-- Basic runtime security checks
-- Input validation testing
-- Error handling verification
-- Runs after Docker build in CI pipeline
-
-### Best Practices Implemented
-- Input validation on POST requests
-- Proper error handling (404, 400, 500)
-- No sensitive data exposure
-- Security headers (basic)
-
-## CI/CD Pipeline
-
-Automated pipeline using GitHub Actions:
-1. ✅ Code checkout
-2. ✅ Python setup
-3. ✅ Dependency installation
-4. ✅ Unit tests execution
-5. ✅ SAST security scan (Bandit)
-6. ✅ Docker image build
-7. ✅ Container integration tests
-8. ✅ DAST security checks
-9. ✅ Artifact uploads
-
-Triggered on: push to main/develop, pull requests
-
-View details: `.github/workflows/ci.yml`
-
-## Project Structure
-
-```text
-devops-hit-counter-api/
-├── app/
-│   ├── main.py                 # Flask application (< 150 lines)
-│   └── static/
-│       ├── dashboard.html      # Simple monitoring dashboard
-│       └── style.css           # Dashboard styles
-├── tests/
-│   └── test_app.py             # Unit tests
-├── kubernetes/
-│   ├── deployment.yaml         # Kubernetes Deployment
-│   └── service.yaml            # Kubernetes Service
-├── .github/
-│   └── workflows/
-│       └── ci.yml              # GitHub Actions CI pipeline
-├── Dockerfile                  # Docker image definition
-├── docker-compose.yml          # Docker Compose setup
-├── requirements.txt            # Python dependencies
-├── README.md                   # Project documentation
-└── .gitignore                  # Git ignore rules
-
+**API returns 500:**
+```bash
+# Check encoding='utf-8' in app/main.py line ~59
+kubectl rollout restart deployment/hit-counter-api
 ```
 
-## Lessons Learned
+## 📚 Files
 
-1. **DevOps as a Culture**: DevOps is not just tools; it's about collaboration and continuous improvement.
-2. **Infrastructure as Code**: K8s manifests make deployments repeatable and versionable.
-3. **Observability Matters**: Metrics, logs, and traces are crucial for production systems.
-4. **Security First**: SAST/DAST should be in every pipeline, not an afterthought.
-5. **Containerization Benefits**: Docker ensures consistency across environments.
-6. **Automation**: CI/CD reduces manual errors and enables rapid iteration.
+- `app/main.py` - Flask API (< 150 lines)
+- `requirements.txt` - Python dependencies
+- `Dockerfile` - Docker image definition
+- `kubernetes/` - Deployment & Service manifests
+- `.github/workflows/ci.yml` - CI/CD automation
+- `tests/` - Unit tests
 
-## Contributing
+## ✅ What's Implemented
 
-1. Create a feature branch: `git checkout -b feature/your-feature`
-2. Make changes and write tests
-3. Commit: `git commit -
+- ✅ Backend API functionality
+- ✅ GitHub workflow (Issues, PRs, Reviews)
+- ✅ CI/CD pipeline
+- ✅ Docker containerization
+- ✅ Kubernetes deployment
+- ✅ Observability (metrics, logs, tracing)
+- ✅ Security scanning (SAST + DAST)
+- ✅ Documentation
+- ✅ Interactive dashboard
+
+---
