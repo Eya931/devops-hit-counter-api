@@ -15,23 +15,34 @@ A simple REST API service to count page visits. Built with Flask, containerized 
 
 ## Architecture
 
-┌─────────────┐
-│   Client    │
-└──────┬──────┘
-│ HTTP
-┌──────▼──────────┐
-│  Flask API      │
-│  - Pages CRUD   │
-│  - Hit Counter  │
-└──────┬──────────┘
-│
-┌──┴──┐
-│     │
-│   In-Memory
-│   Data Store
-│
-Prometheus
-Metrics
+┌──────────────┐
+│    Client    │
+│ (Browser /   │
+│  HTTP User)  │
+└───────┬──────┘
+        │ HTTP Requests
+        ▼
+┌──────────────────────────┐
+│        Flask API         │
+│--------------------------│
+│  • Pages CRUD            │
+│  • Hit Counter           │
+│  • Prometheus Metrics    │
+└───────┬───────────┬──────┘
+        │           │
+        │           │ /metrics
+        │           ▼
+        │     ┌──────────────┐
+        │     │  Prometheus  │
+        │     │   Server     │
+        │     └──────────────┘
+        │
+        ▼
+┌──────────────────────────┐
+│   In-Memory Data Store   │
+│ (Python dict / cache)   │
+└──────────────────────────┘
+
 
 ## Requirements
 
@@ -286,20 +297,23 @@ View details: `.github/workflows/ci.yml`
 
 devops-hit-counter-api/
 ├── app/
-│   └── main.py              # Flask application (< 150 lines)
+│   ├── main.py                 # Flask application (< 150 lines)
+│   └── static/
+│       ├── dashboard.html      # Simple monitoring dashboard
+│       └── style.css           # Dashboard styles
 ├── tests/
-│   └── test_app.py          # Unit tests
+│   └── test_app.py             # Unit tests
 ├── kubernetes/
-│   ├── deployment.yaml      # K8s Deployment
-│   └── service.yaml         # K8s Service
+│   ├── deployment.yaml         # Kubernetes Deployment
+│   └── service.yaml            # Kubernetes Service
 ├── .github/
 │   └── workflows/
-│       └── ci.yml           # GitHub Actions pipeline
-├── Dockerfile               # Docker image definition
-├── docker-compose.yml       # Docker Compose setup
-├── requirements.txt         # Python dependencies
-├── README.md               # This file
-└── .gitignore              # Git ignore rules
+│       └── ci.yml              # GitHub Actions CI pipeline
+├── Dockerfile                  # Docker image definition
+├── docker-compose.yml          # Docker Compose setup
+├── requirements.txt            # Python dependencies
+├── README.md                   # Project documentation
+└── .gitignore                  # Git ignore rules
 
 ## Lessons Learned
 
