@@ -51,6 +51,7 @@ def after_request(response):
     return response
 
 # ===== ROUTES API =====
+
 @app.route('/', methods=['GET'])
 def dashboard():
     """Serve the dashboard"""
