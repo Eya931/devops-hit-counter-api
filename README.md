@@ -97,6 +97,46 @@ GET  /                           # Dashboard
 - **DAST**: Runtime security checks (input validation, error handling, 404 responses)
 - Results available in GitHub Actions Artifacts
 
+
+## Architecture
+
+
+The application exposes a Flask-based REST API that handles page CRUD
+operations and a hit counter. Data is stored in-memory for simplicity.
+Metrics are exposed via a `/metrics` endpoint and scraped by Prometheus.
+
+
+```text
+┌──────────────┐
+│    Client    │
+│ (Browser /   │
+│  HTTP User)  │
+└───────┬──────┘
+        │ HTTP Requests
+        ▼
+┌──────────────────────────┐
+│        Flask API         │
+│--------------------------│
+│  • Pages CRUD            │
+│  • Hit Counter           │
+│  • Prometheus Metrics    │
+└───────┬───────────┬──────┘
+        │           │
+        │           │ /metrics
+        │           ▼
+        │     ┌──────────────┐
+        │     │  Prometheus  │
+        │     │   Server     │
+        │     └──────────────┘
+        │
+        ▼
+┌──────────────────────────┐
+│   In-Memory Data Store   │
+│ (Python dict / cache)    │
+└──────────────────────────┘
+```
+
+
 ## 📁 Project Structure
 
 ```text
